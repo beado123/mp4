@@ -5,7 +5,7 @@
 */
 
 @import 'settings';
-@import 'foundation';
+@import '../../public/lib/foundation-sites/scss/foundation';
 
 @include foundation-global-styles; // Always include the global-styles
 
