@@ -1,1 +1,126 @@
 // Add any custom Sass & CSS here
+#title{
+  font-size:1.8rem;
+  background-color: #dddddd;
+}
+.user_detail{
+  font-size: 1.4rem;
+}
+#pendingTasks{
+  font-size: 1.5rem;
+}
+#setting_subtitle1{
+  font-size: 1.8rem;
+}
+#setting_subtitle2{
+  font-size:1.2rem;
+  color:#b0b0b0;
+}
+#url_button{
+  font-size:1.1rem !important;
+}
+.button_group{
+  height:50px !important;
+  background-color: #7f7fff !important;
+  margin: 12px;
+}
+#add_user_button{
+  background-color: #4ca64c;
+}
+#add_task_button{
+  background-color: #4ca64c;
+  width:100px;
+  margin-left: 20px;
+}
+.list1{
+  border-bottom: 2px #dddddd solid;
+}
+.topBorder{
+  border-top:2px #dddddd solid;
+}
+.preNext{
+  background-color: #dddddd;
+  color:black;
+}
+#submit_button{
+  background-color: #1cb4ac;
+  color:black;
+}
+#delete_button{
+  background-color: #b93838;
+  color:white;
+  margin:15px;
+}
+#complete_button{
+  background-color: #dddddd;
+  color:black;
+  margin-top: 15px;
+  margin-right:25px;
+}
+#show_complete_button{
+  background-color: #46a1b4;
+  height:50px;
+}
+#task_next_bt{
+  margin-right: 45px;
+}
+.username{
+  color:#40bdbe;
+  margin-top: 25px;
+}
+.deadline{
+  margin-top: 15px;
+}
+#deadline_completed{
+  margin-top: 7px;
+}
+#username_completed{
+  color:#40bdbe;
+  margin-top: 7px;
+}
+.asterik{
+  color:red;
+}
+.reminder{
+  background-color: #ff4c4c;
+  color:white;
+  margin-top:-16px;
+  height:30px;
+}
+.suc_msg{
+  background-color:#2b6944;
+  color:white;
+  height:60px;
+  position: relative;
+}
+.inner_suc_msg{
+  background-color:#2b6944;
+  color:white;
+  height:20px;
+  position:absolute;
+  margin-top: 18px;
+  margin-left: 7px;
+}
+.err_msg{
+  background-color: #e50000;
+  color:white;
+  position:relative;
+  height:60px;
+}
+.inner_err_msg{
+  background-color: #e50000;
+  color:white;
+  height:20px;
+  margin-top: 18px;
+  margin-left: 7px;
+  position:absolute;
+}
+.ending{
+  border-bottom:2px #dddddd solid;
+}
+.addHeight{
+  height:40px;
+}
+.filling{
+  color:white;
+}
