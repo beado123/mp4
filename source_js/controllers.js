@@ -85,17 +85,21 @@ mp4Controllers.controller('UserDetailController', ['$scope','sharedServ','$http'
   $scope.readyshow = false;
   $scope.show = false;
 
-  $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'"}').success(function(data){
-    $scope.tasks = data;
+  $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :false}').success(function(data){
     $scope.tasks = sharedServ.convertDate(data);
-    sharedServ.setPage(10);
   }).
   error(function(data,status){
     console.log("Get task failed: ",data, "status: ",status);
   });
 
   $scope.showComplete = function(){
-    $scope.show = true;
+
+    $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :true}').success(function(data){
+      $scope.complete_tasks = sharedServ.convertDate(data);
+    }).
+    error(function(data,status){
+      console.log("Get task failed: ",data, "status: ",status);
+    });
   }
   $scope.toComplete = function(task){
     console.log("task: ", task);
@@ -115,60 +119,137 @@ mp4Controllers.controller('UserDetailController', ['$scope','sharedServ','$http'
     error(function(data,status){
       console.log("Failed to update completed field to true: ",data," status:",status);
     })
+    //get completed task
+    $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :true}').success(function(data){
+      $scope.complete_tasks = sharedServ.convertDate(data);
+    }).
+    error(function(data,status){
+      console.log("Get task failed: ",data, "status: ",status);
+    });
+
+    //get pending tasks
+    $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :false}').success(function(data){
+      $scope.tasks = sharedServ.convertDate(data);
+    }).
+    error(function(data,status){
+      console.log("Get task failed: ",data, "status: ",status);
+    });
+
   }
 }]);
 
 mp4Controllers.controller('TaskController', ['$scope','sharedServ','$http','$window', function($scope,sharedServ,$http,$window) {
   $scope.url = sharedServ.getURL();
-  $http.get($scope.url+'/tasks?sort={"dateCreated": 1}&limit=10').success(function(data){
-    $scope.tasks = sharedServ.convertDate(data);
-    sharedServ.setPage(10);
-  }).
-  error(function(data,status){
-    console.log("Get tasks failed, response: ",data," status:",status);
-  })
+  $scope.types = ["dateCreated","deadline","name","assignedUserName"];
+  $scope.search = 1;
+  $scope.complete_info = false;
+  $scope.sortType = "dateCreated";
+  sharedServ.setPage(0);
+
+
+
+  var mySkipped = sharedServ.getSkippedPage();
+  console.log($scope.complete_info);
+
+  if($scope.complete_info===3){
+
+
+    console.log("sortType: ", $scope.sortType);
+    console.log("search: ", $scope.search);
+    $http.get($scope.url+'/tasks?sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' +mySkipped+ '&limit=10').success(function(data){
+      $scope.tasks = sharedServ.convertDate(data);
+      if(data.data.length<10)sharedServ.setPage(data.data.length);
+      else sharedServ.setPage(10);
+    }).
+    error(function(data,status){
+      console.log("Get tasks failed, response: ",data," status:",status);
+    })
+  }
+  else{
+    $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' +mySkipped+ '&limit=10').success(function(data){
+      $scope.tasks = sharedServ.convertDate(data);
+      if(data.data.length<10)sharedServ.setPage(data.data.length);
+      else sharedServ.setPage(10);
+    }).
+    error(function(data,status){
+      console.log("Get tasks failed, response: ",data," status:",status);
+    })
+  }
+
 
   $scope.goNextPage = function(){
 
-    var temp = sharedServ.getPage();
+    var temp = sharedServ.getSkippedPage();
+    console.log("current totalPage: ", temp);
     if(temp%10 ==0){
 
-      $http.get($scope.url+'/tasks?sort={"dateCreated": 1}&skip=' +temp+ '&limit=10').success(function(data){
-        $scope.tasks = sharedServ.convertDate(data);
-        console.log("total ", temp+10, "objects");
-        console.log("data: ",data)
-        if(data.data.length<10)sharedServ.setPage(temp+data.data.length);
-        else sharedServ.setPage(temp+10);
-      }).
-      error(function(data,status){
-        console.log("Get tasks failed, response: ",data," status:",status);
-      })
+      if($scope.complete_info === 3){
+
+        $http.get($scope.url+'/tasks?sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' +temp+ '&limit=10').success(function(data){
+          $scope.tasks = sharedServ.convertDate(data);
+
+          if(data.data.length<10)sharedServ.setPage(temp+data.data.length);
+          else sharedServ.setPage(temp+10);
+        }).
+        error(function(data,status){
+          console.log("Get tasks failed, response: ",data," status:",status);
+        })
+
+      }
+      else{
+
+
+        $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' +temp+ '&limit=10').success(function(data){
+          $scope.tasks = sharedServ.convertDate(data);
+          if(data.data.length<10)sharedServ.setPage(temp+data.data.length);
+          else sharedServ.setPage(temp+10);
+        }).
+        error(function(data,status){
+          console.log("Get tasks failed, response: ",data," status:",status);
+        })
+      }
 
     }
 
 
   }
   $scope.goPreviousPage = function(){
-    var totalPage = sharedServ.getPage();
+    var totalPage = sharedServ.getSkippedPage();
+    console.log("current totalPage: ", totalPage);
     var shouldSkip;
-    if(totalPage !== 0){
+    if(totalPage > 10){
 
       if(totalPage%10 !== 0){
         shouldSkip = (totalPage - totalPage%10)-10;
       }
-      else shouldSkip = totalPage - 10;
-      $http.get($scope.url+'/tasks?sort={"dateCreated": 1}&skip=' +shouldSkip+ '&limit=10').success(function(data){
-        $scope.tasks = sharedServ.convertDate(data);
-        console.log("shouldSkip ", shouldSkip, "objects");
-        sharedServ.setPage(shouldSkip);
-      }).
-      error(function(data,status){
-        console.log("Get tasks failed, response: ",data," status:",status);
-      })
+      else shouldSkip = totalPage - 20;
+      console.log("shouldSkip: ", shouldSkip);
+      if($scope.complete_info === 3){
 
+        $http.get($scope.url+'/tasks?sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' +shouldSkip+ '&limit=10').success(function(data){
+          $scope.tasks = sharedServ.convertDate(data);
+          sharedServ.setPage(shouldSkip+10);
+        }).
+        error(function(data,status){
+          console.log("Get tasks failed, response: ",data," status:",status);
+        })
+      }
+      else{
+
+        $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' +shouldSkip+ '&limit=10').success(function(data){
+          $scope.tasks = sharedServ.convertDate(data);
+          sharedServ.setPage(shouldSkip+10);
+
+        }).
+        error(function(data,status){
+          console.log("Get tasks failed, response: ",data," status:",status);
+        })
+      }
     }
-
-
+  }
+  $scope.displayDetail = function(task){
+    window.location = '#/tasks_detail';
+    sharedServ.setTask(task);
   }
 
 
@@ -176,110 +257,240 @@ mp4Controllers.controller('TaskController', ['$scope','sharedServ','$http','$win
     window.location = '#/tasks_add/';
   }
   $scope.deleteTask = function(task){
+    var skipped = sharedServ.getSkippedPage();
+    skipped = sharedServ.getLowerTen(skipped);
+
     $http.delete($scope.url+'/tasks/'+task._id).success(function(data){
-      $http.get($scope.url+'/tasks?sort={"dateCreated": 1}').success(function(data){
-        $scope.tasks = data;
-      }).
-      error(function(data,status){
-        console.log("Get tasks data failed, response: ",data," status:",status);
-      })
+
+      if($scope.complete_info === 3){
+        $http.get($scope.url+'/tasks?sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' + skipped+ '&limit=10').success(function(data){
+          $scope.tasks = data;
+        }).
+        error(function(data,status){
+          console.log("Get tasks data failed, response: ",data," status:",status);
+        })
+      }
+      else{
+        $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' + skipped+ '&limit=10').success(function(data){
+          $scope.tasks = data;
+        }).
+        error(function(data,status){
+          console.log("Get tasks data failed, response: ",data," status:",status);
+        })
+      }
+
     }).
     error(function(data,status){
       console.log("Failed to delete tasks: ",task._id, "\ndata: ",data, "\nstatus: ",status);
     })
   }
+
   $scope.showPending = function(){
-    $http.get($scope.url+'/tasks?where={"completed":false}&sort={"dateCreated": 1}').success(function(data){
+
+    $http.get($scope.url+'/tasks?where={"completed":false}&sort={"'+ $scope.sortType+ '":' +$scope.search+ '}&skip=0&limit=10').success(function(data){
       $scope.tasks = sharedServ.convertDate(data);
-      console.log("get pending tasks: ",data);
+      console.log("show pending tasks: ",data);
+      if(data.data.length<10)sharedServ.setPage(data.data.length);
+      else sharedServ.setPage(10);
     }).
     error(function(data,status){
       console.log("Sort pending tasks failed, response: ",data," status:",status);
     })
   }
   $scope.showCompleted = function(){
-    $http.get($scope.url+'/tasks?where={"completed":true}&sort={"dateCreated": 1}').success(function(data){
+
+    $http.get($scope.url+'/tasks?where={"completed":true}&sort={"'+ $scope.sortType+ '":' +$scope.search+ '}&skip=0&limit=10').success(function(data){
       $scope.tasks = sharedServ.convertDate(data);
-      console.log("get completed tasks: ",data);
+      console.log("show completed tasks: ",data);
+      if(data.data.length<10)sharedServ.setPage(data.data.length);
+      else sharedServ.setPage(10);
     }).
     error(function(data,status){
       console.log("Sort completed tasks failed, response: ",data," status:",status);
     })
   }
   $scope.showAll = function(){
-    $http.get($scope.url+'/tasks?sort={"dateCreated": 1}').success(function(data){
+
+    console.log("showAll() curr totalPage: ", skipped);
+    skipped = sharedServ.getLowerTen(skipped);
+    console.log("showAll() should skip: ", skipped);
+    $http.get($scope.url+'/tasks?sort={"'+ $scope.sortType+ '":' +$scope.search+ '}&skip=0&limit=10').success(function(data){
       $scope.tasks = sharedServ.convertDate(data);
+      console.log("show all");
+      if(data.data.length<10)sharedServ.setPage(data.data.length);
+      else sharedServ.setPage(10);
     }).
     error(function(data,status){
       console.log("Sort completed tasks failed, response: ",data," status:",status);
     })
   }
-  $scope.types = ["dateCreated","deadline","name","assignedUserName"];
+
+
   $scope.goAscend = function(){
 
-    $http.get($scope.url+'/tasks?sort={"'+ $scope.sortType+ '":1}').success(function(data){
-      $scope.tasks = sharedServ.convertDate(data);
-      console.log("go Ascending: ",data);
-    }).
-    error(function(data,status){
-      console.log("Sort completed tasks failed, response: ",data," status:",status);
-    })
-  }
-  $scope.goDescend = function(){
+    if($scope.complete_info ===3){
 
-    $http.get($scope.url+'/tasks?sort={"'+ $scope.sortType+ '": -1}').success(function(data){
-      $scope.tasks = sharedServ.convertDate(data);
-      console.log("go Ascending: ",data);
-    }).
-    error(function(data,status){
-      console.log("Sort completed tasks failed, response: ",data," status:",status);
-    })
-  }
-  $scope.sortOnType = function(){
-
-    // console.log("search.in: ",$scope.search.in);
-    if($scope.sortType === "dateCreated"){
-
-      $http.get($scope.url+'/tasks?sort={"dateCreated":' +$scope.search+ '}').success(function(data){
+      $http.get($scope.url+'/tasks?sort={"'+ $scope.sortType+ '":1}&skip=0&limit=10').success(function(data){
         $scope.tasks = sharedServ.convertDate(data);
-        console.log("sort on dateCreated: ",data);
+        if(data.data.length<10)sharedServ.setPage(data.data.length);
+        else sharedServ.setPage(10);
+        console.log("go Ascending: ",data);
       }).
       error(function(data,status){
         console.log("Sort completed tasks failed, response: ",data," status:",status);
       })
+    }
+    else{
+      $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"'+ $scope.sortType+ '":1}&skip=0&limit=10').success(function(data){
+        $scope.tasks = sharedServ.convertDate(data);
+        console.log("go Ascending: ",data);
+        if(data.data.length<10)sharedServ.setPage(data.data.length);
+        else sharedServ.setPage(10);
+      }).
+      error(function(data,status){
+        console.log("Sort completed tasks failed, response: ",data," status:",status);
+      })
+    }
+
+  }
+  $scope.goDescend = function(){
+
+    if($scope.complete_info ===3){
+      $http.get($scope.url+'/tasks?sort={"'+ $scope.sortType+ '": -1}&skip=0&limit=10').success(function(data){
+        $scope.tasks = sharedServ.convertDate(data);
+        console.log("go Descending: ",data);
+        if(data.data.length<10)sharedServ.setPage(data.data.length);
+        else sharedServ.setPage(10);
+      }).
+      error(function(data,status){
+        console.log("Sort completed tasks failed, response: ",data," status:",status);
+      })
+    }
+    else{
+      $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"'+ $scope.sortType+ '": -1}&skip=0&limit=10').success(function(data){
+        $scope.tasks = sharedServ.convertDate(data);
+        console.log("go Ascending: ",data);
+        if(data.data.length<10)sharedServ.setPage(data.data.length);
+        else sharedServ.setPage(10);
+      }).
+      error(function(data,status){
+        console.log("Sort completed tasks failed, response: ",data," status:",status);
+      })
+    }
+
+  }
+  
+  $scope.sortOnType = function(){
+
+    if($scope.sortType === "dateCreated"){
+
+      if($scope.complete_info===3){
+        $http.get($scope.url+'/tasks?sort={"dateCreated":' +$scope.search+ '}&skip=0&limit=10').success(function(data){
+          $scope.tasks = sharedServ.convertDate(data);
+          console.log("sort on dateCreated: ",data);
+          if(data.data.length < 10)sharedServ.setPage(data.data.length);
+          else sharedServ.setPage(10);
+        }).
+        error(function(data,status){
+          console.log("Sort completed tasks failed, response: ",data," status:",status);
+        })
+      }
+      else{
+        $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"dateCreated":' +$scope.search+ '}&skip=0&limit=10').success(function(data){
+          $scope.tasks = sharedServ.convertDate(data);
+          console.log("sort on dateCreated: ",data);
+          if(data.data.length < 10)sharedServ.setPage(data.data.length);
+          else sharedServ.setPage(10);
+        }).
+        error(function(data,status){
+          console.log("Sort completed tasks failed, response: ",data," status:",status);
+        })
+      }
+
 
     }
     else if($scope.sortType === "deadline"){
 
-      $http.get($scope.url+'/tasks?sort={"deadline":' +$scope.search+ '}').success(function(data){
-        $scope.tasks = sharedServ.convertDate(data);
-        console.log("sort on deadline: ",data);
-      }).
-      error(function(data,status){
-        console.log("Sort completed tasks failed, response: ",data," status:",status);
-      })
+      if($scope.complete_info===3){
+        $http.get($scope.url+'/tasks?sort={"deadline":' +$scope.search+ '}&skip=0&limit=10').success(function(data){
+          $scope.tasks = sharedServ.convertDate(data);
+          console.log("sort on deadline: ",data);
+          if(data.data.length < 10)sharedServ.setPage(data.data.length);
+          else sharedServ.setPage(10);
+        }).
+        error(function(data,status){
+          console.log("Sort completed tasks failed, response: ",data," status:",status);
+        })
+      }
+      else{
+        $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"deadline":' +$scope.search+ '}&skip=0&limit=10').success(function(data){
+          $scope.tasks = sharedServ.convertDate(data);
+          console.log("sort on deadline: ",data);
+          if(data.data.length < 10)sharedServ.setPage(data.data.length);
+          else sharedServ.setPage(10);
+        }).
+        error(function(data,status){
+          console.log("Sort completed tasks failed, response: ",data," status:",status);
+        })
+      }
+
+
 
     }
     else if($scope.sortType === "name"){
 
-      $http.get($scope.url+'/tasks?sort={"name":' +$scope.search+ '}').success(function(data){
-        $scope.tasks = sharedServ.convertDate(data);
-        console.log("sort on name: ",data);
-      }).
-      error(function(data,status){
-        console.log("Sort completed tasks failed, response: ",data," status:",status);
-      })
+      if($scope.complete_info===3){
+        $http.get($scope.url+'/tasks?sort={"name":' +$scope.search+ '}&skip=0&limit=10').success(function(data){
+          $scope.tasks = sharedServ.convertDate(data);
+          console.log("sort on name: ",data);
+          if(data.data.length < 10)sharedServ.setPage(data.data.length);
+          else sharedServ.setPage(10);
+        }).
+        error(function(data,status){
+          console.log("Sort completed tasks failed, response: ",data," status:",status);
+        })
+      }
+      else{
+        $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"name":' +$scope.search+ '}&skip=0&limit=10').success(function(data){
+          $scope.tasks = sharedServ.convertDate(data);
+          console.log("sort on name: ",data);
+          if(data.data.length < 10)sharedServ.setPage(data.data.length);
+          else sharedServ.setPage(10);
+        }).
+        error(function(data,status){
+          console.log("Sort completed tasks failed, response: ",data," status:",status);
+        })
+      }
+
+
 
     }
     else if($scope.sortType === "assignedUserName"){
 
-      $http.get($scope.url+'/tasks?sort={"assignedUserName":' +$scope.search+ '}').success(function(data){
-        $scope.tasks = sharedServ.convertDate(data);
-        console.log("sort on assignedUserName: ",data);
-      }).
-      error(function(data,status){
-        console.log("Sort completed tasks failed, response: ",data," status:",status);
-      })
+      if($scope.complete_info===3){
+        $http.get($scope.url+'/tasks?sort={"assignedUserName":' +$scope.search+ '}&skip=0&limit=10').success(function(data){
+          $scope.tasks = sharedServ.convertDate(data);
+          console.log("sort on assignedUserName: ",data);
+          if(data.data.length < 10)sharedServ.setPage(data.data.length);
+          else sharedServ.setPage(10);
+        }).
+        error(function(data,status){
+          console.log("Sort completed tasks failed, response: ",data," status:",status);
+        })
+      }
+      else{
+        $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"assignedUserName":' +$scope.search+ '}&skip=0&limit=10').success(function(data){
+          $scope.tasks = sharedServ.convertDate(data);
+          console.log("sort on assignedUserName: ",data);
+          if(data.data.length < 10)sharedServ.setPage(data.data.length);
+          else sharedServ.setPage(10);
+        }).
+        error(function(data,status){
+          console.log("Sort completed tasks failed, response: ",data," status:",status);
+        })
+      }
+
+
 
     }
   }
@@ -288,7 +499,7 @@ mp4Controllers.controller('TaskController', ['$scope','sharedServ','$http','$win
 
 
 }]);
-mp4Controllers.controller('TaskAddController', ['$scope','sharedServ','$http','$window', function($scope,sharedServ,$http,$window) {
+mp4Controllers.controller('TaskAddController', ['$scope','sharedServ','taskData','$http','$window', function($scope,sharedServ,taskData,$http,$window) {
   $scope.submitted = false;
   $scope.error = false;
   $scope.submitSuccess = false;
@@ -311,6 +522,7 @@ mp4Controllers.controller('TaskAddController', ['$scope','sharedServ','$http','$
     if($scope.assignedUser !== undefined){
       assignedUserID = $scope.assignedUser._id;
       assignedUserName = $scope.assignedUser.name;
+
     }
     var data = {
       "name": $scope.taskname,
@@ -337,6 +549,156 @@ mp4Controllers.controller('TaskAddController', ['$scope','sharedServ','$http','$
       console.log("post data failed: ",data," status: ",status);
     });
   }
+}]);
+mp4Controllers.controller('TaskDetailController', ['$scope','sharedServ','taskData','$http','$window', function($scope,sharedServ,taskData,$http,$window) {
+  $scope.url = sharedServ.getURL();
+  $scope.task = sharedServ.getTask();
+  taskData.setTaskData($scope.task);
+  $scope.editTask = function(){
+      window.location = '#/tasks_edit/';
+  }
+}]);
+mp4Controllers.controller('TaskEditController', ['$scope','sharedServ','taskData','$http','$window', function($scope,sharedServ,taskData,$http,$window) {
+  $scope.url = sharedServ.getURL();
+
+  $scope.task = taskData.getTask();
+  $scope.name1 = $scope.task.name;
+  $scope.date1 = $scope.task.deadline;
+  $scope.description1 = $scope.task.description;
+  $scope.completed = $scope.task.completed;
+  $scope.curr_username = $scope.task.assignedUserName;
+  $scope.UserId = $scope.task.assignedUser;
+  $scope.taskId = $scope.task._id;
+
+  //initialize default value in Forms
+  $scope.date = $scope.date1;
+  $scope.description = $scope.description1;
+  $scope.options = [];
+  $http.get($scope.url+'/users').success(function(data){
+    $scope.users = data.data;
+    console.log("user data: ",data);
+
+    $scope.index = taskData.getIndex($scope.users, $scope.curr_username, $scope.options);
+    console.log("index: ",$scope.index);
+    console.log("options: ",$scope.options);
+    if($scope.curr_username !== "unassigned"){
+      $scope.selectedUser = $scope.options[$scope.index];
+    }
+
+    $scope.submitted = false;
+    $scope.error = false;
+    $scope.submitSuccess = false;
+
+
+  }).
+  error(function(data,status){
+    console.log("Get users data failed, response: ",data," status:",status);
+  });
+  $scope.editTask = function(){
+
+    $scope.submitted = true;
+    $scope.error = false;
+
+    var submitName, submitDescription, submitDeadline, submitUsername, submitUserId, submitComplete;
+    if($scope.complete_change !== $scope.completed)submitComplete = $scope.complete_change;
+    else submitComplete = $scope.completed;
+
+    if($scope.selectedUser !== $scope.curr_username){
+      submitUsername = $scope.selectedUser;
+      console.log("selectedUser: ", $scope.selectedUser);
+      console.log("curr_username: ", $scope.curr_username);
+
+      //get new user
+      $http.get($scope.url+'/users?where={"name": "'+$scope.selectedUser+ '"}').success(function(data){
+        console.log("get new user: ",data);
+        submitUserId = data.data[0]._id;
+
+
+        console.log("data.data.pendingTasks: ",data.data[0].pendingTasks);
+        var newtasks = taskData.appendTask(data.data[0].pendingTasks, $scope.taskId);
+        var user1 = {
+          "name": data.data[0].name,
+          "email": data.data[0].email,
+          "pendingTasks":newtasks,
+          "dateCreated": data.data[0].dateCreated
+        }
+        $http.put($scope.url+'/users/'+data.data[0]._id, user1).success(function(data){
+          console.log("updated new user and add task: ", $scope.taskId);
+        }).
+        error(function(data,status){
+          console.log("failed to post user and add task, response: ",data," status:",status);
+        })
+      }).
+      error(function(data,status){
+        console.log("Get user data failed, response: ",data," status:",status);
+      });
+
+      //get old user
+      if($scope.curr_username !== "unassigned"){ //if it's unassigned, no need to update old user
+
+        $http.get($scope.url+'/users?where={"name":"' +$scope.curr_username+ '"}').success(function(data){
+          console.log("get old user: ",data);
+          //console.log("data.data[0].pendingTasks: ",data.data[0].pendingTasks);
+          if(data.data[0] !== undefined){
+
+            var newtasks = taskData.removeTask(data.data[0].pendingTasks, $scope.taskId);
+            var user1 = {
+              "name": data.data[0].name,
+              "email": data.data[0].email,
+              "pendingTasks": newtasks,
+              "dateCreated": data.data[0].dateCreated
+            }
+            $http.put($scope.url+'/users/'+data.data[0]._id, user1).success(function(data){
+              console.log("updated old user and remove task: ", $scope.taskId);
+            }).
+            error(function(data,status){
+              console.log("failed to post user and remove task, response: ",data," status:",status);
+            })
+
+          }
+
+        }).
+        error(function(data,status){
+          console.log("failed to get user, response: ",data," status:",status);
+        })
+
+      }
+
+
+    }
+    else{ submitUserId = $scope.UserId; submitUsername = $scope.curr_username; }
+    if($scope.taskname !== $scope.name1)submitName = $scope.taskname;
+    else submitName = $scope.name1;
+    if($scope.date !== $scope.date1)submitDeadline = $scope.date;
+    else submitDeadline = $scope.date1;
+    if($scope.description !== $scope.description1)submitDescription = $scope.description;
+    else submitDescription = $scope.description1;
+
+    var submitTask = {
+      "name": submitName,
+      "description": submitDescription,
+      "deadline": submitDeadline,
+      "completed": submitComplete,
+      "assignedUser": submitUserId,
+      "assignedUserName": submitUsername,
+      "dateCreated": submitDeadline
+    }
+    $http.put($scope.url+'/tasks/'+ $scope.taskId, submitTask).success(function(data){
+      console.log("successfully updated tasks: ",data);
+      $scope.submitSuccess = true;
+      $scope.submitted = false;
+    }).
+    error(function(data,status){
+      $scope.error = true;
+      $scope.submitSuccess = false;
+      $scope.err_msg = data.message;
+      console.log("failed to update task, response: ",data,"status:",status);
+    })
+
+
+  }
+
+
 }]);
 
 mp4Controllers.controller('SettingsController', ['$scope' , '$window','$http', 'sharedServ', function($scope, $window,$http,sharedServ) {

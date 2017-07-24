@@ -8,10 +8,44 @@ mp4Services.factory('Llamas', function($http, $window) {
         }
     }
 });
+mp4Services.factory('taskData', function($http, $window) {
+  var task;
+
+    return {
+        setTaskData : function(task1) {
+            task = task1;
+        },
+        getTask: function(){
+          return task;
+        },
+        appendTask: function(pendingTasks, newTaskId){
+          pendingTasks.push(newTaskId);
+          return pendingTasks;
+        },
+        removeTask: function(pendingTasks, taskId){
+          var i = pendingTasks.indexOf(taskId);
+          if(i>-1){
+            pendingTasks.splice(i,1);
+          }
+          return pendingTasks;
+        },
+        getIndex: function(users, name, options){
+          //console.log("name: ",name);
+          for(var i=0;i<users.length;i++){
+            //console.log("users[i].name ",users[i].name );
+            options.push(users[i].name);
+            if(users[i].name === name){return i;}
+          }
+
+        }
+    }
+});
 mp4Services.factory('sharedServ', function($http) {
 	var backURL = "";
   var curr_user = {};
-  var page;
+  var curr_task = {};
+  //var page;
+  var skip=0;
   var months = {'01':'January', '02':'February','03':'March','04':'April','05':'May','06':'June','07':'July','08':'August','09':'September','10':'October','11':'November','12':'December'};
 	return {
 					setURL: function(url){
@@ -20,17 +54,32 @@ mp4Services.factory('sharedServ', function($http) {
 					getURL: function(){
 						return backURL;
 					},
-          setPage: function(num){
-            page = num;
+          getLowerTen: function(skipped){
+
+            if(skipped%10 !== 0)return skipped - (skipped%10);
+            else return (skipped-10);
           },
-          getPage: function(){
-            return page;
+
+          setPage: function(skipped){
+            skip = skipped;
+            console.log("set skip to: ",skip);
           },
+
+          getSkippedPage: function(){
+            return skip;
+          },
+
           setUser: function(user){
             curr_user = user;
           },
           getUser: function(){
             return curr_user;
+          },
+          setTask: function(task){
+            curr_task = task;
+          },
+          getTask: function(){
+            return curr_task;
           },
           convertDate: function(tasks){
             var mytasks = tasks.data;
