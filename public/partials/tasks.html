@@ -13,15 +13,15 @@
       <div class="row">
         <div class="small-4 columns">
           <form >
-      			<input type="radio" name="complete" ng-model="complete_info" ng-click="showPending()"> Pending &nbsp;
-      			<input type="radio" name="complete" ng-model="complete_info" ng-click="showCompleted()"> Completed&nbsp;
-      			<input type="radio" name="complete" ng-model="complete_info" ng-click="showAll()"> All
+      			<input type="radio" ng-value=false ng-model="complete_info" ng-click="showPending()"> Pending</input>
+      			<input type="radio" ng-value=true ng-model="complete_info" ng-click="showCompleted()"> Completed</input>
+      			<input type="radio" ng-value=3    ng-model="complete_info" ng-init="complete_info = false"  ng-click="showAll()"> All</input>
       		</form>
         </div>
         <div class="small-3 columns end"><span>Sort by:</span></div>
         <div class="small-4 columns">
           <form >
-      			<input type="radio" ng-init="search = 1" ng-model="search" ng-value=1 ng-click="goAscend()"> Ascending &nbsp;
+      			<input type="radio" ng-init="search = 1" ng-model="search" ng-value=1 ng-click="goAscend()"> Ascending </input>
       		</form>
         </div>
       </div>
@@ -29,11 +29,11 @@
 
       <div class="row">
         <div class="small-4 small-push-4 columns end">
-					<select ng-init="sortType = types[0]" ng-change="sortOnType()" ng-model="sortType" ng-options="item for item in types"></select>
+					<select ng-change="sortOnType()" ng-model="sortType" ng-options="item for item in types"></select>
         </div>
         <div class="small-4 columns">
           <form >
-      			<input type="radio" ng-model="search" ng-value=-1 ng-click="goDescend()"> Descending &nbsp;
+      			<input type="radio" ng-model="search" ng-value=-1 ng-click="goDescend()"> Descending </input>
       		</form>
         </div>
       </div>
@@ -44,7 +44,7 @@
 		      <div id="task_next_bt" class="small-1 columns"><button ng-click="goNextPage()" class="button default preNext">Next</button></div>
       </div>
 			<div class="row topBorder" ng-repeat="task in tasks.data">
-				<div  ng-click="displayDetail(user)" class="small-3 columns deadline username"><strong>{{task.name}}</strong></div>
+				<div  ng-click="displayDetail(task)" class="small-3 columns deadline username"><strong>{{task.name}}</strong></div>
 
 				<div class="small-4 small-push-2 columns deadline">
 					<div class="">{{task.deadline}}</div>
