@@ -18,15 +18,19 @@
 
 <br>
         <div>Description</div>
-        <form name="form1">
+        <form name="form2">
             <input type="search" name="search" placeholder="description" ng-model="description">
         </form>
 <br>
+<div ng-show="(submitted)  && form3.deadline_date.$error.required" class="reminder">Deadline is required</div>
       <div>Deadline<span class="asterik">*</span></div>
-      <datepicker>
-          <input ng-model="date" name="deadline_date" type="text" required>
-      </datepicker>
-      <div ng-show="(submitted)  && date.$error.required" class="reminder">Deadline is required</div>
+      <form name="form3">
+        <datepicker>
+            <input ng-model="date" name="deadline_date" type="text" required>
+        </datepicker>
+      </form>
+
+
 
 <br><br>
       <div class="row filling" ng-show="false">ss

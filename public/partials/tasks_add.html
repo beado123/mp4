@@ -3,8 +3,8 @@
 
 	<div class="small-8 columns end list">
 		<div class="small-12 column">
-			<span id="setting_subtitle1">Add User</span>
-			<span id="setting_subtitle2">out next task-slayer</span>
+			<span id="setting_subtitle1">Add Task</span>
+			<span id="setting_subtitle2">staying occupied</span>
 		</div>
 
     <div class="row">
@@ -18,17 +18,21 @@
 
 <br>
         <div>Description</div>
-        <form name="form1">
+        <form name="form2">
             <input type="search" name="search" placeholder="description" ng-model="description">
         </form>
-<br>
-      <div>Deadline<span class="asterik">*</span></div>
-      <datepicker>
-          <input ng-model="date" name="deadline_date" type="text" required>
-      </datepicker>
-      <div ng-show="(submitted)  && date.$error.required" class="reminder">Deadline is required</div>
+<br> 
+<div ng-show="(submitted)  && form3.deadline_date.$error.required" class="reminder">Deadline is required</div>
 
-<br><br>
+      <div>Deadline<span class="asterik">*</span></div>
+			<form name="form3" >
+				<datepicker>
+	          <input ng-model="date" name="deadline_date" type="text" required>
+	      </datepicker>
+
+			</form>
+
+<br>
       <div class="row filling" ng-show="false">ss
 
       </div>

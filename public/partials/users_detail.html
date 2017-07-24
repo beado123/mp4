@@ -17,7 +17,7 @@
 		</div>
 
 		<div class="row topBorder" ng-repeat="task in tasks.data">
-			<div class="small-4 columns username"><strong>{{task.name}}</strong></div>
+			<div class="small-4 columns username" ng-click="gotoDetail(task)"><strong>{{task.name}}</strong></div>
 			<div class="small-3 columns deadline">{{task.deadline}}</div>
 			<div class="small-2 columns">
 				<button id="complete_button" class="small-push-2 end button default" ng-click="toComplete(task)">Completed</button>
@@ -26,9 +26,9 @@
 		<div class="row">
 			<button id="show_complete_button" class="small-push-4 end button default" ng-click="showComplete()">Show Completed Tasks</button>
 		</div>
-		<div class="row topBorder addHeight" ng-repeat="task in complete_tasks.data">
-			<div id="username_completed" class="small-4 columns"><strong>{{task.name}}</strong></div>
-			<div id="deadline_completed" class="small-4 columns end">{{task.deadline}}</div>
+		<div class="row topBorder addHeight" ng-repeat="task1 in complete_tasks.data">
+			<div id="username_completed" class="small-4 columns" ng-click="gotoDetail(task1)"><strong>{{task1.name}}</strong></div>
+			<div id="deadline_completed" class="small-4 columns end">{{task1.deadline}}</div>
 		</div>
 
 	</div>

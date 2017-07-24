@@ -10,6 +10,7 @@ mp4Services.factory('Llamas', function($http, $window) {
 });
 mp4Services.factory('taskData', function($http, $window) {
   var task;
+  var index;
 
     return {
         setTaskData : function(task1) {
@@ -32,11 +33,10 @@ mp4Services.factory('taskData', function($http, $window) {
         getIndex: function(users, name, options){
           //console.log("name: ",name);
           for(var i=0;i<users.length;i++){
-            //console.log("users[i].name ",users[i].name );
             options.push(users[i].name);
-            if(users[i].name === name){return i;}
+            if(users[i].name === name){index=i;}
           }
-
+          return index;
         }
     }
 });

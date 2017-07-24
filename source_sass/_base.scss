@@ -9,6 +9,9 @@
 #pendingTasks{
   font-size: 1.5rem;
 }
+#complete_status{
+  font-size:1.1rem;
+}
 #setting_subtitle1{
   font-size: 1.8rem;
 }
@@ -24,8 +27,14 @@
   background-color: #7f7fff !important;
   margin: 12px;
 }
-#add_user_button{
+#add_user_button,#edit_task_button{
   background-color: #4ca64c;
+}
+.edit_task{
+  margin-left: 90px;
+}
+#left_space{
+  margin-left: 1px;
 }
 #add_task_button{
   background-color: #4ca64c;
@@ -123,4 +132,8 @@
 }
 .filling{
   color:white;
+}
+#description{
+  font-size: 1.4rem;
+  margin-top: 20px;
 }
