@@ -641,11 +641,11 @@ mp4Controllers.controller('TaskEditController', ['$scope','sharedServ','taskData
   $http.get($scope.url+'/users').success(function(data){
     $scope.users = data.data;
     console.log("user data: ",data);
-
     $scope.index = taskData.getIndex($scope.users, $scope.curr_username, $scope.options);
     console.log("index: ",$scope.index);
     console.log("options: ",$scope.options);
     if($scope.curr_username !== "unassigned"){
+      //console.log("$scope.options[$scope.index].name: ",$scope.options[$scope.index].name);
       $scope.selectedUser = $scope.options[$scope.index];
     }
 

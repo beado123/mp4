@@ -34,6 +34,7 @@ mp4Services.factory('taskData', function($http, $window) {
           //console.log("name: ",name);
           for(var i=0;i<users.length;i++){
             options.push(users[i].name);
+            //console.log("users[i].name: ",users[i].name);
             if(users[i].name === name){index=i;}
           }
           return index;
