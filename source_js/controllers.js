@@ -120,6 +120,7 @@ mp4Controllers.controller('UserDetailController', ['$scope','sharedServ','$http'
   $scope.user = sharedServ.getUser();
   $scope.readyshow = false;
   $scope.show = false;
+  $scope.showComplete = false;
 
   $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :false}').success(function(data){
     $scope.tasks = sharedServ.convertDate(data);
@@ -129,6 +130,7 @@ mp4Controllers.controller('UserDetailController', ['$scope','sharedServ','$http'
   });
 
   $scope.showComplete = function(){
+    $scope.showComplete = true;
 
     $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :true}').success(function(data){
       $scope.complete_tasks = sharedServ.convertDate(data);
@@ -160,10 +162,23 @@ mp4Controllers.controller('UserDetailController', ['$scope','sharedServ','$http'
       error(function(data,status){
         console.log("Get task failed: ",data, "status: ",status);
       });
+      if($scope.showComplete === true){
+
+        //get completed tasks
+        $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :true}').success(function(data){
+          $scope.complete_tasks = sharedServ.convertDate(data);
+          console.log("get completed tasks: ",data);
+        }).
+        error(function(data,status){
+          console.log("Get task failed: ",data, "status: ",status);
+        });
+
+      }
     }).
     error(function(data,status){
       console.log("Failed to update completed field to true: ",data," status:",status);
     })
+
 
 
   }
