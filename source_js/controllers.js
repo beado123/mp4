@@ -41,7 +41,7 @@ mp4Controllers.controller('UserController', ['$scope', '$routeParams', 'sharedSe
             "dateCreated": data.data.dateCreated
           };
           $http.put($scope.url+'/tasks/'+data.data._id, newTask).success(function(data){
-            console.log("successfully updated task");
+            console.log("successfully updated task to unassigned");
           }).
           error(function(data,status){
             console.log("failed to update task: ",data,"status: ",status);
@@ -122,7 +122,7 @@ mp4Controllers.controller('UserDetailController', ['$scope','sharedServ','$http'
   $scope.show = false;
   $scope.showComplete = false;
 
-  $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :false}').success(function(data){
+  $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :false}&sort={"dateCreated":1}').success(function(data){
     $scope.tasks = sharedServ.convertDate(data);
   }).
   error(function(data,status){
@@ -132,7 +132,7 @@ mp4Controllers.controller('UserDetailController', ['$scope','sharedServ','$http'
   $scope.showComplete = function(){
     $scope.showComplete = true;
 
-    $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :true}').success(function(data){
+    $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :true}&sort={"dateCreated":-1}').success(function(data){
       $scope.complete_tasks = sharedServ.convertDate(data);
     }).
     error(function(data,status){
@@ -155,7 +155,7 @@ mp4Controllers.controller('UserDetailController', ['$scope','sharedServ','$http'
       console.log("Successfully update completed to true.");
 
       //get pending tasks
-      $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :false}').success(function(data){
+      $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :false}&sort={"dateCreated":1}').success(function(data){
         $scope.tasks = sharedServ.convertDate(data);
         console.log("get pending tasks: ",data);
       }).
@@ -165,7 +165,7 @@ mp4Controllers.controller('UserDetailController', ['$scope','sharedServ','$http'
       if($scope.showComplete === true){
 
         //get completed tasks
-        $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :true}').success(function(data){
+        $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :true}&sort={"dateCreated":-1}').success(function(data){
           $scope.complete_tasks = sharedServ.convertDate(data);
           console.log("get completed tasks: ",data);
         }).
@@ -337,6 +337,7 @@ mp4Controllers.controller('TaskController', ['$scope','sharedServ','$http','task
 
       if($scope.complete_info === 3){
         $http.get($scope.url+'/tasks?sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' + skipped+ '&limit=10').success(function(data){
+          console.log("successfully deleted task");
           $scope.tasks = data;
         }).
         error(function(data,status){
@@ -345,6 +346,7 @@ mp4Controllers.controller('TaskController', ['$scope','sharedServ','$http','task
       }
       else{
         $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' + skipped+ '&limit=10').success(function(data){
+          console.log("successfully deleted task");
           $scope.tasks = data;
         }).
         error(function(data,status){
@@ -609,6 +611,7 @@ mp4Controllers.controller('TaskAddController', ['$scope','sharedServ','taskData'
     console.log("required: ",$scope.form3.deadline_date.$error.required);
     if($scope.taskname !== undefined && $scope.date !== undefined){
 
+      //post task
       $http.post($scope.url+'/tasks',data).success(function(data){
         console.log("post data success: ",data);
         $scope.submitSuccess = true;
@@ -617,6 +620,40 @@ mp4Controllers.controller('TaskAddController', ['$scope','sharedServ','taskData'
         $scope.description = "";
         $scope.date = null;
         $scope.assignedUser = null;
+
+        //update pendingTasks in user
+        if(assignedUserID !== ""){
+          //get newly added task
+          $http.get($scope.url+'/tasks?where={"name":"' +data.data.name+ '"}').success(function(data){
+            console.log("successfully get newly added task: ",data);
+
+            $scope.newTaskId = data.data[0]._id;
+            //get assigned user
+            $http.get($scope.url+'/users/'+data.data[0].assignedUser).success(function(data){
+              var newTasks = taskData.appendTask(data.data.pendingTasks, $scope.newTaskId);
+              var newUser = {
+                "name":data.data.name,
+                "email":data.data.email,
+                "pendingTasks":newTasks,
+                "dateCreated": data.data.dateCreated
+              }
+              $http.put($scope.url+'/users/'+data.data._id, newUser).success(function(data){
+                console.log("successfully updated pendingTasks of user");
+              }).
+              error(function(data,status){
+                console.log("failed to updated pendingTasks of user: ",data,"status:",status);
+              })
+
+            }).
+            error(function(data,status){
+              console.log("failed to get user: ",data,"status:",status);
+            })
+          }).
+          error(function(data,status){
+            console.log("failed to get just added task: ",data,"status:",status);
+          })
+
+        }
       }).
       error(function(data,status){
         $scope.error = true;
@@ -624,6 +661,7 @@ mp4Controllers.controller('TaskAddController', ['$scope','sharedServ','taskData'
         $scope.err_msg = data.message;
         console.log("post data failed: ",data," status: ",status);
       });
+
     }
 
   }
