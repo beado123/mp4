@@ -26,7 +26,7 @@
       <button id="submit_button" class="small-push-3 end button default" ng-click="postUser()">Submit</button>
 <br><br>
       <div ng-show="submitSuccess" class="suc_msg"> <div class="inner_suc_msg">User {{enteredUser}} has been added!</div></div>
-      <div ng-show=" error && !form1.search.$error.required && !form2.search.$error.required" class="err_msg">  <div class="inner_err_msg">{{err_msg}}</div></div>
+      <div ng-show=" error" class="err_msg">  <div class="inner_err_msg">{{err_msg}}</div></div>
     </div>
   </div>
   </div>

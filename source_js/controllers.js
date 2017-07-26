@@ -83,7 +83,7 @@ mp4Controllers.controller('UserAddController', ['$scope', 'sharedServ','$http','
 
   $scope.postUser = function(){
     $scope.submitted = true;
-    $scope.error = false;
+    $scope.submitSuccess = false;
     $scope.enteredUser = $scope.username;
     var data = {
       "name": $scope.username,
@@ -93,19 +93,22 @@ mp4Controllers.controller('UserAddController', ['$scope', 'sharedServ','$http','
     };
     console.log("username: ", $scope.username);
     console.log("emial: ", $scope.email);
-    if($scope.username !== undefined && $scope.email !== undefined ){
+    if($scope.username !== "" && $scope.email !== "" && $scope.username !== undefined && $scope.email !== undefined){
 
       $http.post($scope.url+'/users',data).success(function(data){
         console.log("post data success: ",data);
         $scope.submitSuccess = true;
         $scope.submitted = false;
+        $scope.error = false;
         $scope.username = "";
         $scope.email = "";
       }).
       error(function(data,status){
+        $scope.submitSuccess = false;
+        $scope.submitted = false;
         $scope.error = true;
         $scope.err_msg = data.message;
-        $scope.submitSuccess = false;
+
         console.log("post data failed: ",data," status: ",status);
       });
 
@@ -587,7 +590,8 @@ mp4Controllers.controller('TaskAddController', ['$scope','sharedServ','taskData'
 
   $scope.postTask = function(){
     $scope.submitted = true;
-    $scope.error = false;
+    $scope.submitSuccess = false;
+
     $scope.enteredTask = $scope.taskname;
     var assignedUserID = "";
     var assignedUserName = "unassigned";
@@ -609,13 +613,14 @@ mp4Controllers.controller('TaskAddController', ['$scope','sharedServ','taskData'
     console.log("deadline", $scope.date );
     console.log("submitted: ", $scope.submitted);
     console.log("required: ",$scope.form3.deadline_date.$error.required);
-    if($scope.taskname !== undefined && $scope.date !== undefined){
+    if($scope.taskname !== undefined && $scope.date !== undefined && $scope.taskname !== "" && $scope.date !== ""){
 
       //post task
       $http.post($scope.url+'/tasks',data).success(function(data){
         console.log("post data success: ",data);
         $scope.submitSuccess = true;
         $scope.submitted = false;
+        $scope.error = false;
         $scope.taskname = "";
         $scope.description = "";
         $scope.date = null;
@@ -658,6 +663,7 @@ mp4Controllers.controller('TaskAddController', ['$scope','sharedServ','taskData'
       error(function(data,status){
         $scope.error = true;
         $scope.submitSuccess = false;
+        $scope.submitted = false;
         $scope.err_msg = data.message;
         console.log("post data failed: ",data," status: ",status);
       });
@@ -687,6 +693,10 @@ mp4Controllers.controller('TaskEditController', ['$scope','sharedServ','taskData
   $scope.UserId = $scope.task.assignedUser;
   $scope.taskId = $scope.task._id;
 
+  $scope.submitted = false;
+  $scope.error = false;
+  $scope.submitSuccess = false;
+
   //initialize default value in Forms
   $scope.date = $scope.date1;
   $scope.description = $scope.description1;
@@ -702,11 +712,6 @@ mp4Controllers.controller('TaskEditController', ['$scope','sharedServ','taskData
       $scope.selectedUser = $scope.options[$scope.index];
     }
 
-    $scope.submitted = false;
-    $scope.error = false;
-    $scope.submitSuccess = false;
-
-
   }).
   error(function(data,status){
     console.log("Get users data failed, response: ",data," status:",status);
@@ -714,7 +719,7 @@ mp4Controllers.controller('TaskEditController', ['$scope','sharedServ','taskData
   $scope.editTask = function(){
 
     $scope.submitted = true;
-    $scope.error = false;
+    $scope.submitSuccess = false;
 
     var submitName, submitDescription, submitDeadline, submitUsername, submitUserId, submitComplete;
     if($scope.complete_change !== $scope.completed)submitComplete = $scope.complete_change;
@@ -727,30 +732,34 @@ mp4Controllers.controller('TaskEditController', ['$scope','sharedServ','taskData
       console.log("selectedUser: ", $scope.selectedUser);
       console.log("curr_username: ", $scope.curr_username);
 
-      //get new user
-      $http.get($scope.url+'/users?where={"name": "'+$scope.selectedUser+ '"}').success(function(data){
-        console.log("get new user: ",data);
-        submitUserId = data.data[0]._id;
+      if($scope.selectedUser !== "unassigned"){
 
+        //get new user
+        $http.get($scope.url+'/users?where={"name": "'+$scope.selectedUser+ '"}').success(function(data){
+          console.log("get new user: ",data);
+          submitUserId = data.data[0]._id;
 
-        console.log("data.data.pendingTasks: ",data.data[0].pendingTasks);
-        var newtasks = taskData.appendTask(data.data[0].pendingTasks, $scope.taskId);
-        var user1 = {
-          "name": data.data[0].name,
-          "email": data.data[0].email,
-          "pendingTasks":newtasks,
-          "dateCreated": data.data[0].dateCreated
-        }
-        $http.put($scope.url+'/users/'+data.data[0]._id, user1).success(function(data){
-          console.log("updated new user and add task: ", $scope.taskId);
+          console.log("data.data.pendingTasks: ",data.data[0].pendingTasks);
+          var newtasks = taskData.appendTask(data.data[0].pendingTasks, $scope.taskId);
+          var user1 = {
+            "name": data.data[0].name,
+            "email": data.data[0].email,
+            "pendingTasks":newtasks,
+            "dateCreated": data.data[0].dateCreated
+          }
+          $http.put($scope.url+'/users/'+data.data[0]._id, user1).success(function(data){
+            console.log("updated new user and add task: ", $scope.taskId);
+          }).
+          error(function(data,status){
+            console.log("failed to post user and add task, response: ",data," status:",status);
+          })
         }).
         error(function(data,status){
-          console.log("failed to post user and add task, response: ",data," status:",status);
-        })
-      }).
-      error(function(data,status){
-        console.log("Get user data failed, response: ",data," status:",status);
-      });
+          console.log("Get user data failed, response: ",data," status:",status);
+        });
+      }
+
+
 
       //get old user
       if($scope.curr_username !== "unassigned"){ //if it's unassigned, no need to update old user
@@ -802,16 +811,18 @@ mp4Controllers.controller('TaskEditController', ['$scope','sharedServ','taskData
       "assignedUserName": submitUsername,
       "dateCreated": submitDeadline
     }
-    if($scope.taskname !== undefined && $scope.date !== undefined){
+    if($scope.taskname !== undefined && $scope.date !== undefined && $scope.taskname !== "" && $scope.date !== ""){
 
       $http.put($scope.url+'/tasks/'+ $scope.taskId, submitTask).success(function(data){
         console.log("successfully updated tasks: ",data);
         $scope.submitSuccess = true;
-        //$scope.submitted = false;
+        $scope.submitted = false;
+        $scope.error = false;
       }).
       error(function(data,status){
         $scope.error = true;
         $scope.submitSuccess = false;
+        $scope.submitted = false;
         $scope.err_msg = data.message;
         console.log("failed to update task, response: ",data,"status:",status);
       })
