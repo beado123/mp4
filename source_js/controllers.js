@@ -227,36 +227,91 @@ mp4Controllers.controller('TaskController', ['$scope','sharedServ','$http','task
   $scope.goNextPage = function(){
 
     var temp = sharedServ.getSkippedPage();
-    console.log("current totalPage: ", temp);
-    if(temp%10 ==0){
+    if($scope.complete_info ===3){
+      $http.get($scope.url +'/tasks?sort={"' +$scope.sortType+ '":' +$scope.search+ '}').success(function(data){
+        console.log("successfully get all task:",data);
+        $scope.pageCount = data.data.length;
+        console.log("pageCount: ",$scope.pageCount);
 
-      if($scope.complete_info === 3){
+        if(temp%10 ==0 && temp < $scope.pageCount){
 
-        $http.get($scope.url+'/tasks?sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' +temp+ '&limit=10').success(function(data){
-          $scope.tasks = sharedServ.convertDate(data);
+          if($scope.complete_info === 3){
 
-          if(data.data.length<10)sharedServ.setPage(temp+data.data.length);
-          else sharedServ.setPage(temp+10);
-        }).
-        error(function(data,status){
-          console.log("Get tasks failed, response: ",data," status:",status);
-        })
+            $http.get($scope.url+'/tasks?sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' +temp+ '&limit=10').success(function(data){
+              $scope.tasks = sharedServ.convertDate(data);
 
-      }
-      else{
+              if(data.data.length<10)sharedServ.setPage(temp+data.data.length);
+              else sharedServ.setPage(temp+10);
+            }).
+            error(function(data,status){
+              console.log("Get tasks failed, response: ",data," status:",status);
+            })
+
+          }
+          else{
 
 
-        $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' +temp+ '&limit=10').success(function(data){
-          $scope.tasks = sharedServ.convertDate(data);
-          if(data.data.length<10)sharedServ.setPage(temp+data.data.length);
-          else sharedServ.setPage(temp+10);
-        }).
-        error(function(data,status){
-          console.log("Get tasks failed, response: ",data," status:",status);
-        })
-      }
+            $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' +temp+ '&limit=10').success(function(data){
+              $scope.tasks = sharedServ.convertDate(data);
+              if(data.data.length<10)sharedServ.setPage(temp+data.data.length);
+              else sharedServ.setPage(temp+10);
+            }).
+            error(function(data,status){
+              console.log("Get tasks failed, response: ",data," status:",status);
+            })
+          }
 
+        }
+      }).
+      error(function(data,status){
+        console.log("failed to get all task:",data);
+      })
+
+    }else{
+      $http.get($scope.url +'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"' +$scope.sortType+ '":' +$scope.search+ '}').success(function(data){
+        console.log("successfully get all task:",data);
+        $scope.pageCount = data.data.length;
+
+        if(temp%10 ==0 && temp < $scope.pageCount){
+
+          if($scope.complete_info === 3){
+
+            $http.get($scope.url+'/tasks?sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' +temp+ '&limit=10').success(function(data){
+              $scope.tasks = sharedServ.convertDate(data);
+
+              if(data.data.length<10)sharedServ.setPage(temp+data.data.length);
+              else sharedServ.setPage(temp+10);
+            }).
+            error(function(data,status){
+              console.log("Get tasks failed, response: ",data," status:",status);
+            })
+
+          }
+          else{
+
+
+            $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' +temp+ '&limit=10').success(function(data){
+              $scope.tasks = sharedServ.convertDate(data);
+              if(data.data.length<10)sharedServ.setPage(temp+data.data.length);
+              else sharedServ.setPage(temp+10);
+            }).
+            error(function(data,status){
+              console.log("Get tasks failed, response: ",data," status:",status);
+            })
+          }
+
+        }
+
+      }).
+      error(function(data,status){
+        console.log("failed to get all task:",data);
+      })
     }
+    //console.log("current totalPage: ", temp);
+    //console.log("pageCount: ",$scope.pageCount);
+
+
+
 
 
   }
@@ -275,7 +330,8 @@ mp4Controllers.controller('TaskController', ['$scope','sharedServ','$http','task
 
         $http.get($scope.url+'/tasks?sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' +shouldSkip+ '&limit=10').success(function(data){
           $scope.tasks = sharedServ.convertDate(data);
-          sharedServ.setPage(shouldSkip+10);
+          if(data.data.length<10)sharedServ.setPage(shouldSkip+data.data.length);
+          else sharedServ.setPage(shouldSkip+10);
         }).
         error(function(data,status){
           console.log("Get tasks failed, response: ",data," status:",status);
@@ -285,7 +341,8 @@ mp4Controllers.controller('TaskController', ['$scope','sharedServ','$http','task
 
         $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' +shouldSkip+ '&limit=10').success(function(data){
           $scope.tasks = sharedServ.convertDate(data);
-          sharedServ.setPage(shouldSkip+10);
+          if(data.data.length<10)sharedServ.setPage(shouldSkip+data.data.length);
+          else sharedServ.setPage(shouldSkip+10);
 
         }).
         error(function(data,status){
@@ -305,7 +362,8 @@ mp4Controllers.controller('TaskController', ['$scope','sharedServ','$http','task
   }
   $scope.deleteTask = function(task){
     var skipped = sharedServ.getSkippedPage();
-    skipped = sharedServ.getLowerTen(skipped);
+
+    console.log("get skipped in deleteTask: ",skipped);
 
     //remove task in pendingTasks of user
     if(task.assignedUser !== ""){
@@ -337,11 +395,17 @@ mp4Controllers.controller('TaskController', ['$scope','sharedServ','$http','task
 
     //delete task
     $http.delete($scope.url+'/tasks/'+task._id).success(function(data){
+      sharedServ.setPage(skipped-1);
+      console.log("set skip to ",skipped-1, "after deletion");
+      skipped = sharedServ.getLowerTen(skipped-1);
+
 
       if($scope.complete_info === 3){
         $http.get($scope.url+'/tasks?sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' + skipped+ '&limit=10').success(function(data){
-          console.log("successfully deleted task");
+          console.log("successfully deleted task:",data);
           $scope.tasks = data;
+          if(data.data.length<10)sharedServ.setPage(skipped+data.data.length);
+          else sharedServ.setPage(skipped+10);
         }).
         error(function(data,status){
           console.log("Get tasks data failed, response: ",data," status:",status);
@@ -349,8 +413,10 @@ mp4Controllers.controller('TaskController', ['$scope','sharedServ','$http','task
       }
       else{
         $http.get($scope.url+'/tasks?where={"completed":' +$scope.complete_info+ '}&sort={"' +$scope.sortType+ '":' +$scope.search+ '}&skip=' + skipped+ '&limit=10').success(function(data){
-          console.log("successfully deleted task");
+          console.log("successfully deleted task",data);
           $scope.tasks = data;
+          if(data.data.length<10)sharedServ.setPage(skipped+data.data.length);
+          else sharedServ.setPage(skipped+10);
         }).
         error(function(data,status){
           console.log("Get tasks data failed, response: ",data," status:",status);
@@ -579,6 +645,7 @@ mp4Controllers.controller('TaskAddController', ['$scope','sharedServ','taskData'
   $scope.error = false;
   $scope.submitSuccess = false;
 
+
   $scope.url = sharedServ.getURL();
   $http.get($scope.url+'/users').success(function(data){
     //console.log("user.html: successfully get users data: \n",data);
@@ -595,7 +662,8 @@ mp4Controllers.controller('TaskAddController', ['$scope','sharedServ','taskData'
     $scope.enteredTask = $scope.taskname;
     var assignedUserID = "";
     var assignedUserName = "unassigned";
-    if($scope.assignedUser !== undefined){
+    console.log("assignedUser: ", $scope.assignedUser);
+    if($scope.assignedUser !== undefined && $scope.assignedUser !== "" ){
       assignedUserID = $scope.assignedUser._id;
       assignedUserName = $scope.assignedUser.name;
 
@@ -611,8 +679,7 @@ mp4Controllers.controller('TaskAddController', ['$scope','sharedServ','taskData'
     };
     console.log("taskname: ", $scope.taskname);
     console.log("deadline", $scope.date );
-    console.log("submitted: ", $scope.submitted);
-    console.log("required: ",$scope.form3.deadline_date.$error.required);
+
     if($scope.taskname !== undefined && $scope.date !== undefined && $scope.taskname !== "" && $scope.date !== ""){
 
       //post task
@@ -623,12 +690,14 @@ mp4Controllers.controller('TaskAddController', ['$scope','sharedServ','taskData'
         $scope.error = false;
         $scope.taskname = "";
         $scope.description = "";
-        $scope.date = null;
-        $scope.assignedUser = null;
+        $scope.date = undefined;
+        $scope.assignedUser = undefined;
 
         //update pendingTasks in user
-        if(assignedUserID !== ""){
+        console.log("data.data.assignedUser:", data.data.assignedUser);
+        if(data.data.assignedUser !== ""){
           //get newly added task
+          console.log("get in");
           $http.get($scope.url+'/tasks?where={"name":"' +data.data.name+ '"}').success(function(data){
             console.log("successfully get newly added task: ",data);
 
