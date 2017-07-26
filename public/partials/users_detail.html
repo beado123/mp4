@@ -26,7 +26,7 @@
 		<div class="row">
 			<button id="show_complete_button" class="small-push-4 end button default" ng-click="showComplete()">Show Completed Tasks</button>
 		</div>
-		<div class="row topBorder addHeight" ng-repeat="task1 in complete_tasks.data">
+		<div class="row topBorder addHeight" ng-repeat="task1 in complete_tasks.data" ng-show="showCompleted">
 			<div id="username_completed" class="small-4 columns" ng-click="gotoDetail(task1)"><strong>{{task1.name}}</strong></div>
 			<div id="deadline_completed" class="small-4 columns end">{{task1.deadline}}</div>
 		</div>

@@ -123,7 +123,7 @@ mp4Controllers.controller('UserDetailController', ['$scope','sharedServ','$http'
   $scope.user = sharedServ.getUser();
   $scope.readyshow = false;
   $scope.show = false;
-  $scope.showComplete = false;
+  $scope.showCompleted = false;
 
   $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :false}&sort={"dateCreated":1}').success(function(data){
     $scope.tasks = sharedServ.convertDate(data);
@@ -133,14 +133,20 @@ mp4Controllers.controller('UserDetailController', ['$scope','sharedServ','$http'
   });
 
   $scope.showComplete = function(){
-    $scope.showComplete = true;
+    if($scope.showCompleted ===true)$scope.showCompleted = false;
+    else $scope.showCompleted = true;
 
     $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :true}&sort={"dateCreated":-1}').success(function(data){
-      $scope.complete_tasks = sharedServ.convertDate(data);
+      console.log("successfully get tasks: ",data);
+      if(data.data.length > 0){
+        console.log("here");
+        $scope.complete_tasks = sharedServ.convertDate(data);
+      }
     }).
     error(function(data,status){
       console.log("Get task failed: ",data, "status: ",status);
     });
+
   }
   $scope.toComplete = function(task){
     console.log("task: ", task);
@@ -165,7 +171,7 @@ mp4Controllers.controller('UserDetailController', ['$scope','sharedServ','$http'
       error(function(data,status){
         console.log("Get task failed: ",data, "status: ",status);
       });
-      if($scope.showComplete === true){
+      if($scope.showCompleted === true){
 
         //get completed tasks
         $http.get($scope.url+'/tasks/?where={"assignedUserName":"'+ $scope.user.name+'", "completed" :true}&sort={"dateCreated":-1}').success(function(data){
