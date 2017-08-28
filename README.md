@@ -1,5 +1,6 @@
 # Starter files for task manager
 This is a front-end AngularJS task management app that runs on user-chosen back-end(server).
+```
 API Reference
 Endpoints:	
 users	
@@ -16,13 +17,16 @@ tasks/:id
       GET	Respond with details of specified task or 404 error
       PUT	Replace entire task with supplied task or 404 error
       DELETE Delete specified user or 404 error
+```
 
 
 ## Installation
+```
 Install VirtualBox
 Install Vagrant
 Boot up the virtual machine: vagrant up
 SSH into the virtual machine once it has booted up: vagrant ssh
+```
 
 ## Setup
 Use the following commands in your vagrant development environment to get this up and running
