@@ -20,7 +20,7 @@ tasks/:id
 ```
 
 
-## Installation
+## Prerequisites
 ```
 Install VirtualBox
 Install Vagrant
